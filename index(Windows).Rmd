@@ -12,7 +12,7 @@ output:
 
 # This is a tool to allow for the automation of extracting OSM data, processing it, doing analysis and creating a dashboard to report on the results of predefined questions about the data for two cities. The code is for macOS but there is also a Windows version. This R document will do everything needed. All that is required is to run it with Knit (Rstudio: click on knit). 
 
-# Please take note that this script will take a few hours to complete. It is best to run it at night. It needs further optimization but for now, the most time consuming tasks are generating a GeoJSON with Ottawa and Gatineau together and creating the maps from the building polygons. It can take from 5 to 8 hours to complete depending on the environment. 
+# Please take note that this script can take about 2 hours to complete depending on the environment (computer, OS) and teh size of the cities and teh number of buildings.
 
 # This is written in R markdown, a powerful and modern way of generating reports and running analysis and data processing at the same time. Automating reports and analysis is the future!
 
