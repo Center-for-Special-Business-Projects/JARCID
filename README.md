@@ -11,9 +11,9 @@ This was developed to produce a time series from OSM data and monitor changes fo
 
 ## Dependencies
 
-(Osmosis)[http://wiki.openstreetmap.org/wiki/Osmosis] is used to process osm data in the first phase. Installation instructions can be found (http://wiki.openstreetmap.org/wiki/Osmosis#How_to_install)[here].
+[Osmosis](http://wiki.openstreetmap.org/wiki/Osmosis) is used to process osm data in the first phase. Installation instructions can be found [here](http://wiki.openstreetmap.org/wiki/Osmosis#How_to_install).
 
-JARCID is an R application using R code and R markdown. Get R from CRAN (https://cran.r-project.org/)[here]. RStudio is an interface to R and so much more. It provides a complete environment for R and other tools: (https://www.rstudio.com/)[RStudio].
+JARCID is an R application using R code and R markdown. Get R from CRAN [here](https://cran.r-project.org/). RStudio is an interface to R and so much more. It provides a complete environment for R and other tools: [RStudio](https://www.rstudio.com/).
 
 JARCID requires that some packages be installed but the code takes of care of that so there is no need to install them one by one.
 
@@ -25,13 +25,13 @@ A directory OSMdata must be created in the same directory where the JARCID repo 
 
 JARCID sends commands to the terminal and Windows shell so there are two versions depending on the operating system.
 
-The whole application is written in R markdown: the file index.Rmd. Rmd is for "R markdown". (http://daringfireball.net/projects/markdown/)[Markdown] is a light weight markup language in plain text created by (http://daringfireball.net/)[John Gruber] that can be converted to many formats. (http://rmarkdown.rstudio.com/)[R markdown], is an R implementation of markdown. It is now a major framework to create reproducbile research and documentation in data science. More than that, it integrates the full spectrum from data collection and input to data product.
+The whole application is written in R markdown: the file index.Rmd. Rmd is for "R markdown". [Markdown](http://daringfireball.net/projects/markdown/)is a light weight markup language in plain text created by [John Gruber](http://daringfireball.net/) that can be converted to many formats. [R markdown](http://rmarkdown.rstudio.com/), is an R implementation of markdown. It is now a major framework to create reproducbile research and documentation in data science. More than that, it integrates the full spectrum from data collection and input to data product.
 
 ### Running manually
 open index.Rmd in RStudio. Click "Knit". Jarcid requires about 2 hours depending on the environment.
 
 ### Running automatically
-This depends on which OS version is used. The easy way is to install the packages (https://github.com/bnosac/cronR)[cronR] (macOS) or (https://github.com/bnosac/taskscheduleR)[taskscheduleR] (Windows). Then, by clicking the "Addins" button in RStudio, you will have access to the automation functions. It is recommmended to pick the monthly setting. 
+This depends on which OS version is used. The easy way is to install the packages [cronR](https://github.com/bnosac/cronR) (macOS) or [taskscheduleR](https://github.com/bnosac/taskscheduleR) (Windows). Then, by clicking the "Addins" button in RStudio, you will have access to the automation functions. It is recommmended to pick the monthly setting. 
 
 To automate the "knitting" process of JARCID, a script should be given to taskscheduleR or cronR instead of the Rmd file 
 
