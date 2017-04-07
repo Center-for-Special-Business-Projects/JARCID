@@ -197,7 +197,7 @@ Build <- full_join(Build, data)
 Build <- arrange(Build, month)
 
 #Save the new table containing new data
-write.csv(Build, 'C:/JARCID/Buildings.csv', row.names = F)
+write.csv(Build, 'C:/Projects/JARCID/Buildings.csv', row.names = F)
 
 #Create a name with time for the map
 MapName <- "timeStamp.jpg"
