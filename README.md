@@ -11,7 +11,7 @@ This was developed to produce a time series from OSM data and monitor changes fo
 
 ## Dependencies
 
-(http://wiki.openstreetmap.org/wiki/Osmosis)[Osmosis] is used to process osm data in the first phase. Installation instructions can be found (http://wiki.openstreetmap.org/wiki/Osmosis#How_to_install)[here].
+(Osmosis)[http://wiki.openstreetmap.org/wiki/Osmosis] is used to process osm data in the first phase. Installation instructions can be found (http://wiki.openstreetmap.org/wiki/Osmosis#How_to_install)[here].
 
 JARCID is an R application using R code and R markdown. Get R from CRAN (https://cran.r-project.org/)[here]. RStudio is an interface to R and so much more. It provides a complete environment for R and other tools: (https://www.rstudio.com/)[RStudio].
 
