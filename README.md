@@ -25,7 +25,7 @@ JARCIC should be cloned in a "Projects" directory. I will make these instruction
 
 JARCID sends commands to the terminal and Windows shell so there are two versions depending on the operating system.
 
-The whole application is written in R: the file index.Rmd. Rmd is for "R markdown". [Markdown](http://daringfireball.net/projects/markdown/)is a light weight markup language in plain text created by [John Gruber](http://daringfireball.net/) that can be converted to many formats. [R markdown](http://rmarkdown.rstudio.com/), is an R implementation of markdown. It is now a major framework to create reproducbile research and documentation in data science. More than that, it integrates the full spectrum from data collection and input to data product.
+The application is written in R: the file index.Rmd. Rmd is for "R markdown". [Markdown](http://daringfireball.net/projects/markdown/)is a light weight markup language in plain text created by [John Gruber](http://daringfireball.net/) that can be converted to many formats. [R markdown](http://rmarkdown.rstudio.com/), is an R implementation of markdown. It is now a major framework to create reproducbile research and documentation in data science. More than that, it integrates the full spectrum from data collection and input to data product.
 
 ### Running manually
 open index.Rmd in RStudio. Click "Knit". Jarcid requires about 2 hours depending on the environment.
