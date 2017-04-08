@@ -21,11 +21,11 @@ JARCID requires that some packages be installed but the code takes of care of th
 
 JARCID will need an initial dataset to get started. A first run version will be updated in the repository to create the first dataset and the first map. After the first run, JARCID can take over every month. I will add instructions on how to adapt for different cities.
 
-A directory OSMdata must be created in the same directory where the JARCID repo was cloned. I will make these instructions clearer.
+JARCIC should be cloned in a "Projects" directory. I will make these instructions clearer. 
 
 JARCID sends commands to the terminal and Windows shell so there are two versions depending on the operating system.
 
-The whole application is written in R markdown: the file index.Rmd. Rmd is for "R markdown". [Markdown](http://daringfireball.net/projects/markdown/)is a light weight markup language in plain text created by [John Gruber](http://daringfireball.net/) that can be converted to many formats. [R markdown](http://rmarkdown.rstudio.com/), is an R implementation of markdown. It is now a major framework to create reproducbile research and documentation in data science. More than that, it integrates the full spectrum from data collection and input to data product.
+The whole application is written in R: the file index.Rmd. Rmd is for "R markdown". [Markdown](http://daringfireball.net/projects/markdown/)is a light weight markup language in plain text created by [John Gruber](http://daringfireball.net/) that can be converted to many formats. [R markdown](http://rmarkdown.rstudio.com/), is an R implementation of markdown. It is now a major framework to create reproducbile research and documentation in data science. More than that, it integrates the full spectrum from data collection and input to data product.
 
 ### Running manually
 open index.Rmd in RStudio. Click "Knit". Jarcid requires about 2 hours depending on the environment.
