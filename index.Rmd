@@ -232,7 +232,7 @@ theme1 <- theme(panel.grid.major = element_blank(),
 jpeg(MapDate, width=1920, height=1166)
   gg <- ggplot() + 
     geom_polygon(data = BuildOtt, aes(x = long, y = lat, group = group), fill=NA, color="white") + 
-    geom_polygon(data = BuildGat, aes(x = long, y = lat, group = group), fill=NA, color="white")
+    geom_polygon(data = BuildGat, aes(x = long, y = lat, group = group), fill=NA, color="white") +
     theme1 +
     annotate("text", label = date, x = -76.2, y = 45.05, 
              size = 14, colour = "white")
@@ -240,7 +240,7 @@ print(gg)
 dev.off()
 
 #Import the table again and process it to fill the needed estimates for the dashboard
-#The different versions of teh table are used for different date formating. 
+#The different versions of the table are used for different date formating. 
 data <- read.csv('~/Projects/Jarcid/Buildings.csv', header = TRUE)
 data2 <- data
 data3 <- data
