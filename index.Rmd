@@ -245,6 +245,7 @@ data <- read.csv('~/Projects/Jarcid/Buildings.csv', header = TRUE)
 data2 <- data
 data3 <- data
 data$averTagsBuild <- round(data$averTagsBuild, 2)
+data2$averTagsBuild <- round(data2$averTagsBuild, 2)
 data$month <- month(data$month, label = TRUE)
 data2$month <- ymd(data2$month)
 
