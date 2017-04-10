@@ -14,7 +14,7 @@ output:
 
 # Please take note that this script can take about 2 hours to complete depending on the environment (computer, OS) and teh size of the cities and teh number of buildings.
 
-# This is written in R markdown, a powerful and modern way of generating reports and running analysis and data processing at the same time. Automating reports and analysis is the future!
+# This is written in R markdown, a powerful and modern way of generating reports and running analysis and data processing at the same time. Automating reports and analysis is the future! To automate, all that is needed is to use RScript with launchd on a mac or Task scheduler on Windows.
 
 # Look for needed libraries and install them if missing using the pacman package:
 if (!require("pacman")) install.packages("pacman")
@@ -232,7 +232,7 @@ theme1 <- theme(panel.grid.major = element_blank(),
 jpeg(MapDate, width=1920, height=1166)
   gg <- ggplot() + 
     geom_polygon(data = BuildOtt, aes(x = long, y = lat, group = group), fill=NA, color="white") + 
-    geom_polygon(data = BuildGat, aes(x = long, y = lat, group = group), fill=NA, color="white")
+    geom_polygon(data = BuildGat, aes(x = long, y = lat, group = group), fill=NA, color="white") +
     theme1 +
     annotate("text", label = date, x = -76.2, y = 45.05, 
              size = 14, colour = "white")
@@ -240,11 +240,12 @@ print(gg)
 dev.off()
 
 #Import the table again and process it to fill the needed estimates for the dashboard
-#The different versions of teh table are used for different date formating. 
+#The different versions of the table are used for different date formating. 
 data <- read.csv('~/Projects/Jarcid/Buildings.csv', header = TRUE)
 data2 <- data
 data3 <- data
 data$averTagsBuild <- round(data$averTagsBuild, 2)
+data2$averTagsBuild <- round(data2$averTagsBuild, 2)
 data$month <- month(data$month, label = TRUE)
 data2$month <- ymd(data2$month)
 
@@ -306,7 +307,10 @@ row {data-height=400}
 #Select buildings for ottawa for all months
  OttBuild <- data2 %>%
    filter(cities=="Ottawa") %>%
-   select(cities, month, buildings)
+   select(cities, month, buildings) %>%
+   group_by(cities, m = month(month)) %>% 
+   filter(month == max(month))
+
 
 #Create a time series line chart
 #With a geom_line plot, you need to add group = 1 if only one group of observations
@@ -314,8 +318,7 @@ row {data-height=400}
 gg <- ggplot(OttBuild, aes(month, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
-gg <- gg + scale_x_date(breaks = as.Date(seq(as.Date("2016-07-15"), 
-                            as.Date(date), by = "1 month")), date_labels ="%b %y")
+gg <- gg + scale_x_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -406,8 +409,7 @@ gg <- ggplot(OttTagsBuild, aes(x=tagsBuild, y=month, text = comma(tagsBuild)))
 gg <- gg + geom_segment(aes(xend = 0, yend=month), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
 gg <- gg + scale_x_continuous(expand = c(0.1,0), labels = comma)
-gg <- gg + scale_y_date(breaks = as.Date(seq(as.Date("2016-08-25"), 
-                            as.Date(date), by = "1 month")), date_labels ="%b %y")
+gg <- gg + scale_y_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -465,15 +467,16 @@ row {data-height=400}
 ```{r, echo=FALSE, message=FALSE}
  GatBuild <- data2 %>%
    filter(cities=="Gatineau") %>%
-   select(cities, month, buildings)
+   select(cities, month, buildings) %>%
+   group_by(cities, m = month(month)) %>% 
+   filter(month == max(month))
 
 #With a geom_line plot, you need to add group = 1 if only one group of observations
 #to avoid the warning message each is obs is one group
 gg <- ggplot(GatBuild, aes(month, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
-gg <- gg + scale_x_date(breaks = as.Date(seq(as.Date("2016-07-15"), 
-                            as.Date(date), by = "1 month")), date_labels ="%b %y")
+gg <- gg + scale_x_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -561,8 +564,7 @@ gg <- ggplot(GatTagsBuild, aes(x=tagsBuild, y=month, text = comma(tagsBuild)))
 gg <- gg + geom_segment(aes(xend = 0, yend=month), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
 gg <- gg + scale_x_continuous(expand = c(0.1,0), labels = comma)
-gg <- gg + scale_y_date(breaks = as.Date(seq(as.Date("2016-08-25"), 
-                            as.Date(date), by = "1 month")), date_labels ="%b %y")
+gg <- gg + scale_y_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -621,15 +623,16 @@ row {data-height=400}
 ```{r, echo=FALSE, message=FALSE}
  OttBuildGat <- data2 %>%
    filter(cities=="Ott/Gat") %>%
-   select(cities, month, buildings)
+   select(cities, month, buildings) %>%
+   group_by(cities, m = month(month)) %>% 
+   filter(month == max(month))
 
 #With a geom_line plot, you need to add group = 1 if only one group of observations
 #to avoid the warning message each is obs is one group
 gg <- ggplot(OttBuildGat, aes(month, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
-gg <- gg + scale_x_date(breaks = as.Date(seq(as.Date("2016-07-15"), 
-                            as.Date(date), by = "1 month")), date_labels ="%b %y")
+gg <- gg + scale_x_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -715,8 +718,7 @@ gg <- ggplot(OttGatTagsBuild, aes(x=tagsBuild, y=month, text = comma(tagsBuild))
 gg <- gg + geom_segment(aes(xend = 0, yend=month), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
 gg <- gg + scale_x_continuous(expand = c(0.2,0), labels = comma)
-gg <- gg + scale_y_date(breaks = as.Date(seq(as.Date("2016-08-25"), 
-                            as.Date(date), by = "1 month")), date_labels ="%b %y")
+gg <- gg + scale_y_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
