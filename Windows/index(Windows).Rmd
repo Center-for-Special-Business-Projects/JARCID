@@ -8,11 +8,11 @@ output:
 ---
 
 ```{r global, include=FALSE}
-### Windows version
+#Windows version
 
 # This is a tool to allow for the automation of extracting OSM data, processing it, doing analysis and creating a dashboard to report on the results of predefined questions about the data for two cities. The code is for macOS but there is also a Windows version. This R document will do everything needed. All that is required is to run it with Knit (Rstudio: click on knit). 
 
-# Please take note that this script can take about 2 hours to complete depending on the environment (computer, OS) and teh size of the cities and teh number of buildings.
+# Please take note that this script will take a few hours to complete.
 
 # This is written in R markdown, a powerful and modern way of generating reports and running analysis and data processing at the same time. Automating reports and analysis is the future!
 
@@ -197,7 +197,7 @@ Build <- full_join(Build, data)
 Build <- arrange(Build, month)
 
 #Save the new table containing new data
-write.csv(Build, 'C:/Projects/JARCID/Buildings.csv', row.names = F)
+write.csv(Build, "C:/Projects/JARCID/Buildings.csv", row.names = F)
 
 #Create a name with time for the map
 MapName <- "timeStamp.jpg"
@@ -220,7 +220,7 @@ theme1 <- theme(panel.grid.major = element_blank(),
 jpeg(MapDate, width=1920, height=1166)
   gg <- ggplot() + 
     geom_polygon(data = BuildOtt, aes(x = long, y = lat, group = group), fill=NA, color="white") +
-    geom_polygon(data = BuildGat, aes(x = long, y = lat, group = group), fill=NA, color="white") +
+     geom_polygon(data = BuildGat, aes(x = long, y = lat, group = group), fill=NA, color="white") +
     theme1 +
     annotate("text", label = Sys.Date(), x = -76.2, y = 45.05, 
              size = 14, colour = "white")
@@ -233,7 +233,7 @@ data <- read.csv('C:/Projects/JARCID/Buildings.csv', header = TRUE)
 data2 <- data
 data3 <- data
 data$averTagsBuild <- round(data$averTagsBuild, 2)
-data2$averTagsBuild <- round(data2$averTagsBuild, 2)
+data2$averTagsBuild <- round(data$averTagsBuild, 2)
 data$month <- month(data$month, label = TRUE)
 data2$month <- ymd(data2$month)
 
@@ -254,7 +254,7 @@ row
 #Count the number of buildings for Ottawa and select the last entry in "month"
 buildOtt <- data2 %>%
   filter(cities == "Ottawa") %>%
-  top_n(1, month) %>%
+ top_n(1, month) %>%
   select(buildings)
 
 valueBox(comma(buildOtt), icon = "ion-ios-home-outline", color = "#9ecae1")
@@ -265,7 +265,7 @@ valueBox(comma(buildOtt), icon = "ion-ios-home-outline", color = "#9ecae1")
 #Count the number of users for Ottawa and select the last entry in "month"
 usersOtt <- data2 %>%
   filter(cities == "Ottawa") %>%
-  top_n(1, month) %>%
+ top_n(1, month) %>%
   select(usersBuild)
 
 valueBox(usersOtt, icon = "ion-ios-people-outline", color = "#9ecae1")
@@ -276,7 +276,7 @@ valueBox(usersOtt, icon = "ion-ios-people-outline", color = "#9ecae1")
 #Get the average number of tags for Ottawa and select the last entry in "month"
 tagsOtt <- data2 %>%
   filter(cities == "Ottawa") %>%
-  top_n(1, month) %>%
+ top_n(1, month) %>%
   select(averTagsBuild)
 
 tagsOtt$averTagsBuild <- round(tagsOtt$averTagsBuild, 2)
@@ -294,17 +294,20 @@ row {data-height=400}
 #Select buildings for ottawa for all months
  OttBuild <- data2 %>%
    filter(cities=="Ottawa") %>%
-   select(cities, month, buildings)%>%
+   select(cities, month, buildings) %>%
    group_by(cities, m = month(month)) %>% 
    filter(month == max(month))
+
+OttBuild$MonthY <- format(as.Date(OttBuild$month), "%b %Y")
+OttBuild$MonthY <- factor(OttBuild$MonthY, levels = OttBuild$MonthY[order(OttBuild$buildings)])
+
 
 #Create a time series line chart
 #With a geom_line plot, you need to add group = 1 if only one group of observations
 #to avoid the warning message each is obs is one group
-gg <- ggplot(OttBuild, aes(month, buildings, group = 1, text = comma(buildings)))
+gg <- ggplot(OttBuild, aes(MonthY, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
-gg <- gg + scale_x_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -383,19 +386,20 @@ ggplotly(gg, tooltip = "text")
 ###Number of tags
 ```{r}
 #Select tags per building for Ottawa, change the date of August 1 to August 30th to plot a monthly series. This would be controversial in a stastical analysis but we are simply plotting the data we already have on a monthly basis. The date of extraction in August does not matter as it was just a starting point to collect data. Changing it to 30th is just more convenient for the plot and does not affect the data.
-OttTagsBuild <- data3 %>% 
+OttTagsBuild <- data2 %>% 
   filter(cities=="Ottawa") %>%
   select(cities, month, tagsBuild) %>%
-  mutate(month = fct_recode(month, "2016-08-30" = "2016-08-01")) %>%
   mutate(month = ymd(month)) %>%
   group_by(cities, m = month(month)) %>% 
   filter(month == max(month))
 
-gg <- ggplot(OttTagsBuild, aes(x=tagsBuild, y=month, text = comma(tagsBuild)))
-gg <- gg + geom_segment(aes(xend = 0, yend=month), color="#ececec")
+OttTagsBuild$MonthY <- format(as.Date(OttTagsBuild$month), "%b %Y")
+OttTagsBuild$MonthY <- factor(OttTagsBuild$MonthY, levels = OttTagsBuild$MonthY[order(OttTagsBuild$tagsBuild)])
+
+gg <- ggplot(OttTagsBuild, aes(x=tagsBuild, y=MonthY, text = comma(tagsBuild)))
+gg <- gg + geom_segment(aes(xend = 0, yend=MonthY), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
 gg <- gg + scale_x_continuous(expand = c(0.1,0), labels = comma)
-gg <- gg + scale_y_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -457,12 +461,16 @@ row {data-height=400}
    group_by(cities, m = month(month)) %>% 
    filter(month == max(month))
 
+GatBuild$MonthY <- format(as.Date(GatBuild$month), "%b %Y")
+GatBuild$MonthY <- factor(GatBuild$MonthY, levels = GatBuild$MonthY[order(GatBuild$buildings)])
+
+
+#Create a time series line chart
 #With a geom_line plot, you need to add group = 1 if only one group of observations
 #to avoid the warning message each is obs is one group
-gg <- ggplot(GatBuild, aes(month, buildings, group = 1, text = comma(buildings)))
+gg <- ggplot(GatBuild, aes(MonthY, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
-gg <- gg + scale_x_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -537,20 +545,20 @@ ggplotly(gg, tooltip = "text")
 
 ```{r}
 
-GatTagsBuild <- data3 %>% 
+GatTagsBuild <- data2 %>% 
   filter(cities=="Gatineau") %>%
   select(cities, month, tagsBuild) %>%
-  mutate(month = fct_recode(month, "2016-08-30" = "2016-08-01")) %>%
   mutate(month = ymd(month)) %>%
   group_by(cities, m = month(month)) %>% 
   filter(month == max(month))
 
-#28 because of February
-gg <- ggplot(GatTagsBuild, aes(x=tagsBuild, y=month, text = comma(tagsBuild)))
-gg <- gg + geom_segment(aes(xend = 0, yend=month), color="#ececec")
+GatTagsBuild$MonthY <- format(as.Date(GatTagsBuild$month), "%b %Y")
+GatTagsBuild$MonthY <- factor(GatTagsBuild$MonthY, levels = GatTagsBuild$MonthY[order(GatTagsBuild$tagsBuild)])
+
+gg <- ggplot(GatTagsBuild, aes(x=tagsBuild, y=MonthY, text = comma(tagsBuild)))
+gg <- gg + geom_segment(aes(xend = 0, yend=MonthY), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
 gg <- gg + scale_x_continuous(expand = c(0.1,0), labels = comma)
-gg <- gg + scale_y_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -613,12 +621,16 @@ row {data-height=400}
    group_by(cities, m = month(month)) %>% 
    filter(month == max(month))
 
+OttBuildGat$MonthY <- format(as.Date(OttBuildGat$month), "%b %Y")
+OttBuildGat$MonthY <- factor(OttBuildGat$MonthY, levels = OttBuildGat$MonthY[order(OttBuildGat$buildings)])
+
+
+#Create a time series line chart
 #With a geom_line plot, you need to add group = 1 if only one group of observations
 #to avoid the warning message each is obs is one group
-gg <- ggplot(OttBuildGat, aes(month, buildings, group = 1, text = comma(buildings)))
+gg <- ggplot(OttBuildGat, aes(MonthY, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
-gg <- gg + scale_x_date(date_breaks = "1 month", date_labels ="%b %y")
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
@@ -691,20 +703,20 @@ ggplotly(gg, tooltip = "text")
 ###Number of tags
 
 ```{r}
-OttGatTagsBuild <- data3 %>% 
+OttGatTagsBuild <- data2 %>% 
   filter(cities=="Ott/Gat") %>%
   select(cities, month, tagsBuild) %>%
-  mutate(month = fct_recode(month, "2016-08-30" = "2016-08-01")) %>%
   mutate(month = ymd(month)) %>%
   group_by(cities, m = month(month)) %>% 
   filter(month == max(month))
 
-#28 because of February
-gg <- ggplot(OttGatTagsBuild, aes(x=tagsBuild, y=month, text = comma(tagsBuild)))
-gg <- gg + geom_segment(aes(xend = 0, yend=month), color="#ececec")
+OttGatTagsBuild$MonthY <- format(as.Date(OttGatTagsBuild$month), "%b %Y")
+OttGatTagsBuild$MonthY <- factor(OttGatTagsBuild$MonthY, levels = OttGatTagsBuild$MonthY[order(OttGatTagsBuild$tagsBuild)])
+
+gg <- ggplot(OttGatTagsBuild, aes(x=tagsBuild, y=MonthY, text = comma(tagsBuild)))
+gg <- gg + geom_segment(aes(xend = 0, yend=MonthY), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
-gg <- gg + scale_x_continuous(expand = c(0.2,0), labels = comma)
-gg <- gg + scale_y_date(date_breaks = "1 month", date_labels ="%b %y")
+gg <- gg + scale_x_continuous(expand = c(0.1,0), labels = comma)
 gg <- gg + labs(x = NULL, y = NULL)
 gg <- gg + theme(strip.background=element_blank())
 gg <- gg + theme_bw(base_family = "Helvetica")
