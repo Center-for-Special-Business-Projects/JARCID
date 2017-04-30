@@ -17,54 +17,64 @@ output:
 # This is written in R markdown, a powerful and modern way of generating reports and running analysis and data processing at the same time. Automating reports and analysis is the future! To automate, all that is needed is to use RScript with launchd on a mac or Task scheduler on Windows.
 
 # Look for needed libraries and install them if missing using the pacman package:
+
 if (!require("pacman")) install.packages("pacman")
 pacman::p_load(flexdashboard, tidyverse, ggthemes, lubridate, leaflet,
                rgdal, forcats, scales, DT, plotly, stringr, rgeos, maptools)
 
 # Capture the date and format for its use
+
 date <- Sys.Date()
 date2 <- as.character(date)
 date3 <- str_replace_all(date, "-", "")
 
 # Create the path to save files 
+
 datePath <- file.path("../OSMdata", Sys.Date())
 if(!file.exists(datePath)) dir.create(datePath)
 
 #The URLs to download files
+
 ontario <- "http://download.geofabrik.de/north-america/canada/ontario-latest.osm.pbf"
 quebec <- "http://download.geofabrik.de/north-america/canada/quebec-latest.osm.pbf"
 
-#Create a time stamp and change the file names to include time of download
+# Create a time stamp and change the file names to include time of download
+
 FileNameOnt <- "ontario-latest.osm.pbf"
 FileNameOnt <- str_replace_all(FileNameOnt, "latest", date3)
 FileNameQueb <- "quebec-latest.osm.pbf"
 FileNameQueb <- str_replace_all(FileNameQueb, "latest", date3)
 
-#Use created file path, download files and save into the created directory
+# Use created file path, download files and save into the created directory
+
 OntFile <- file.path(datePath, FileNameOnt)
 QuebFile <- file.path(datePath, FileNameQueb)
 
 download.file(ontario, destfile = OntFile)
 download.file(quebec, destfile = QuebFile)
 
-#Import geometries
+# Import geometries. You need a poly file for the city you are monitoring. See documentation for more info. Recommendation is to use a standard geography like census subdivision or CMA (Statistics Canada). The use of the poly format is for osmosis, the library we use to do the extraction from OSM. The code could be adapted for OSMIUM, another library which uses GeoJSON instead making this step more convenient.
+
 system(paste("cp ~/Projects/OSMdata/Geometries/*.poly", datePath))
 
-# The first part requires system commands line. This was done on a mac. On a PC, system() 
-#must be replaced by shell().
+# OSM data download and extraction ---------------------------
 
-# These commands will run in terminal or a shell and use Osmosis to do three things:
-# a) subset osm data to the CSD of a municipality (Ottawa and Gatineau), subset the buildings (ways), then convert the resulting osm file into a GeoJSON. After processing Ottawa and Gatineau, we merge the two osm files into one OttGat file and turn it into a GeoJSON to have both together.
+# The first part requires system commands line. This was done on a mac. On Windows, system() 
+# must be replaced by shell(). These commands will run in terminal or a shell and use Osmosis to do two things:
+
+# a) subset osm data to the CSD of a municipality (Ottawa and Gatineau)
+# b) subset the buildings (ways), then convert the resulting osm files for both cities into a GeoJSON.
 
 # 1. Ottawa
-#Here, "\" needs to be escaped to work (with another \)    
+
+# Here, "\" needs to be escaped to work (with another \) (on macOS)   
 system(paste("cd", datePath, "&& osmosis \\
        --rbf", FileNameOnt, "\\
        --bounding-polygon file=\"Ottawa.poly\" \\
        completeWays=yes \\
        --wx ottawa.osm"))
 
-#Same thing, a "\" needs to be escaped with another "\"
+# Same thing, a "\" needs to be escaped with another "\"
 system(paste("cd", datePath, "&& osmosis \\
        --rx ottawa.osm \\
        --tf accept-ways 'building=*' \\
@@ -77,7 +87,8 @@ system(paste("cd", datePath,
        "&& node --max_old_space_size=8192 `which osmtogeojson` OttBuildW.osm > OttBuildW.geojson"))
 
 # 2. Gatineau
-#Here, "\" needs to be escaped to work (with a \)    
+
+# Here, "\" needs to be escaped to work (with a \)    
 system(paste("cd", datePath, "&& osmosis \\
        --rbf", FileNameQueb, "\\
        --bounding-polygon file=\"Gatineau.poly\" \\
@@ -94,16 +105,19 @@ system(paste("cd", datePath, "&& osmosis \\
 system(paste("cd", datePath, 
        "&& node --max_old_space_size=8192 `which osmtogeojson` GatBuildW.osm > GatBuildW.geojson"))
 
+# Estimates and updating the dataset ---------------------------
+
 # The processing is finished and we need to import the GeoJSON to do produce the estimates
-#Build the path from date
+# Build the path from date
+
 OttJSON <- file.path(datePath, "OttBuildW.geojson")
 GatJSON <- file.path(datePath, "GatBuildW.geojson")
 
-#Import GeoJSON
+# Import GeoJSON
 BuildOtt <- readOGR(OttJSON, "OGRGeoJSON", require_geomType="wkbPolygon")
 BuildGat <- readOGR(GatJSON, "OGRGeoJSON", require_geomType="wkbPolygon")
 
-#Extract data frame from spatial object
+# Extract data frame from spatial object
 OttData <-BuildOtt@data
 GatData <- BuildGat@data
 OttGatData <- full_join(OttData, GatData)
@@ -160,7 +174,7 @@ rownames(OttData2) <- c()
 rownames(GatData2) <- c()
 rownames(OttGatData2) <- c()
 
-#Remove common attributes before counting tags
+# Remove common attributes before counting tags
 CommAttr <- c("id", "user", "uid", "timestamp", "version", "changeset")
 
 OttTagBuild <- OttData2 %>%
@@ -208,15 +222,15 @@ data$month <- ymd(data$month)
 Build <- full_join(Build, data)
 Build <- arrange(Build, month)
 
-#Save the new table containing new data
+# Save the new table containing new data
 write.csv(Build, '~/Projects/Jarcid/Buildings.csv', row.names = F)
 
-#Create a name with time for the map
+# Create a name with timestamp for the map
 MapName <- "timeStamp.jpg"
 MapDate <- str_replace_all(MapName, "timeStamp", date2)
 
-#Create a theme (styling) for the map: basically, removing any background element and setting background
-#to color #333333
+# Create a theme (styling) for the map: basically, removing any background element and setting background
+# to color #333333
 
 theme1 <- theme(panel.grid.major = element_blank(), 
                 panel.grid.minor = element_blank(),
@@ -228,7 +242,7 @@ theme1 <- theme(panel.grid.major = element_blank(),
                 panel.background = element_rect(fill = "#333333"))
 
 
-#Create a map from the building polygons and save it as jpeg image
+# Create a map from the building polygons and save it as jpeg image
 jpeg(MapDate, width=1920, height=1166)
   gg <- ggplot() + 
     geom_polygon(data = BuildOtt, aes(x = long, y = lat, group = group), fill=NA, color="white") + 
@@ -249,10 +263,12 @@ data2$averTagsBuild <- round(data2$averTagsBuild, 2)
 data$month <- month(data$month, label = TRUE)
 data2$month <- ymd(data2$month)
 
-#The extraction, processing and analysis are almost all done. What follows is the dashboard. 
-#Some calculations and estimates are also done below for each segments.
+# Dashboard ---------------------------
 
-#Notes: all charts are created with ggplot2. The use of plotly (ggplotly) is only there to benefit from teh autoresizing of ggplotly. This ensures that the plots are always the right size for the space they are given. The code will also make use of the captured date of the extraction where necessary.
+#The extraction, processing and analysis are almost all done. What follows is the dashboard. 
+#Some calculations and estimates will still be done below for each segments.
+
+#Notes: all charts are created with ggplot2. The use of plotly (ggplotly) is only there to benefit from the autoresizing of ggplotly. This ensures that the plots are always the right size for the space they are given. The code will also make use of the captured date of the extraction where necessary.
 
 ```
 
@@ -264,7 +280,7 @@ row
 
 ###Buildings {.value-box}
 ```{r, echo=FALSE}
-#Count the number of buildings for Ottawa and select the last entry in "month"
+# Count the number of buildings for Ottawa and select the last entry in "month"
 buildOtt <- data2 %>%
   filter(cities == "Ottawa") %>%
   top_n(1, month) %>%
@@ -275,7 +291,7 @@ valueBox(comma(buildOtt), icon = "ion-ios-home-outline", color = "#9ecae1")
 
 ###Users {.value-box}
 ```{r}
-#Count the number of users for Ottawa and select the last entry in "month"
+# Count the number of users for Ottawa and select the last entry in "month"
 usersOtt <- data2 %>%
   filter(cities == "Ottawa") %>%
   top_n(1, month) %>%
@@ -286,7 +302,7 @@ valueBox(usersOtt, icon = "ion-ios-people-outline", color = "#9ecae1")
 
 ###Average number of tags {.value-box}
 ```{r}
-#Get the average number of tags for Ottawa and select the last entry in "month"
+# Get the average number of tags for Ottawa and select the last entry in "month"
 tagsOtt <- data2 %>%
   filter(cities == "Ottawa") %>%
   top_n(1, month) %>%
@@ -304,7 +320,7 @@ row {data-height=400}
 ###Buildings mapped
 
 ```{r, echo=FALSE, message=FALSE}
-#Select buildings for ottawa for all months
+# Select buildings for ottawa for all months
  OttBuild <- data2 %>%
    filter(cities=="Ottawa") %>%
    select(cities, month, buildings) %>%
@@ -315,9 +331,9 @@ OttBuild$MonthY <- format(as.Date(OttBuild$month), "%b %Y")
 OttBuild$MonthY <- factor(OttBuild$MonthY, levels = OttBuild$MonthY[order(OttBuild$buildings)])
 
 
-#Create a time series line chart
-#With a geom_line plot, you need to add group = 1 if only one group of observations
-#to avoid the warning message each is obs is one group
+# Create a time series line chart
+# With a geom_line plot, you need to add group = 1 if only one group of observations
+# to avoid the warning message each is obs is one group
 gg <- ggplot(OttBuild, aes(MonthY, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
@@ -338,15 +354,15 @@ row {data-height=600}
 -------------------------------------------------------------------
 ###Buildings by type 
 ```{r}
-#Select buildings for Ottawa and group them by type, calculate sum by type and sort in descending order, 
-#then select those with over 50 buildings per type
+# Select buildings for Ottawa and group them by type, calculate sum by type and sort in descending order, 
+# then select those with over 50 buildings per type
 buildType <- OttData2 %>% 
   group_by(building) %>%
   summarise(numB = length(building)) %>%
   arrange(desc(numB)) %>%
   filter(numB > 50)
 
-#Create a dot plot
+# Create a dot plot
 gg <- ggplot(buildType, aes(x=numB, y=reorder(building, numB), text = comma(numB)))
 gg <- gg + geom_segment(aes(xend = 0, yend=building), color="#ececec")
 gg <- gg + geom_point(color = "#3282bd", size = 2)
@@ -369,7 +385,7 @@ ggplotly(gg, tooltip = "text")
 MissAddOtt <- OttData2 %>%
   select(addr.street, addr.housenumber, addr.city, addr.postcode)
 
-#Change the variable names to descriptive names, sum and calculate the percentage of missing
+# Change the variable names to descriptive names, sum and calculate the percentage of missing
 MeanAddrOtt <- MissAddOtt %>%
   summarise_all(funs(mean(is.na(.))*100)) %>%
   gather(Field, meanNA) %>%
@@ -397,7 +413,8 @@ ggplotly(gg, tooltip = "text")
 
 ###Number of tags
 ```{r}
-#Select tags per building for Ottawa, change the date of August 1 to August 30th to plot a monthly series. This would be controversial in a stastical analysis but we are simply plotting the data we already have on a monthly basis. The date of extraction in August does not matter as it was just a starting point to collect data. Changing it to 30th is just more convenient for the plot and does not affect the data.
+# Select tags per building for Ottawa, change the date of August 1 to August 30th to plot a monthly series. This would be controversial in a stastical analysis but we are simply plotting the data we already have on a monthly basis. The date of extraction in August does not matter as it was just a starting point to collect data. Changing it to 30th is just more convenient for the plot and does not affect the data.
+
 OttTagsBuild <- data2 %>% 
   filter(cities=="Ottawa") %>%
   select(cities, month, tagsBuild) %>%
@@ -476,9 +493,10 @@ row {data-height=400}
 GatBuild$MonthY <- format(as.Date(GatBuild$month), "%b %Y")
 GatBuild$MonthY <- factor(GatBuild$MonthY, levels = GatBuild$MonthY[order(GatBuild$buildings)])
 
-#Create a time series line chart
-#With a geom_line plot, you need to add group = 1 if only one group of observations
-#to avoid the warning message each is obs is one group
+# Create a time series line chart
+# With a geom_line plot, you need to add group = 1 if only one group of observations
+# to avoid the warning message each is obs is one group
+
 gg <- ggplot(GatBuild, aes(MonthY, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
@@ -634,9 +652,10 @@ row {data-height=400}
 OttBuildGat$MonthY <- format(as.Date(OttBuildGat$month), "%b %Y")
 OttBuildGat$MonthY <- factor(OttBuildGat$MonthY, levels = OttBuildGat$MonthY[order(OttBuildGat$buildings)])
 
-#Create a time series line chart
-#With a geom_line plot, you need to add group = 1 if only one group of observations
-#to avoid the warning message each is obs is one group
+# Create a time series line chart
+# With a geom_line plot, you need to add group = 1 if only one group of observations
+# to avoid the warning message each is obs is one group
+
 gg <- ggplot(OttBuildGat, aes(MonthY, buildings, group = 1, text = comma(buildings)))
 gg <- gg + geom_line(position = "identity", color="#6baed6")
 gg <- gg + scale_y_continuous(labels = comma)
@@ -742,7 +761,7 @@ ggplotly(gg, tooltip = "text")
 Data
 ========================================================
 ```{r}
-#Builds an interactive table using DataTable
+# Builds an interactive table using DataTable
 datatable(data2, extensions = "Buttons", 
           options = list(dom="lfrtBip", buttons="csv"))
 ```
@@ -751,13 +770,13 @@ datatable(data2, extensions = "Buttons",
 August 2016 {data-navmenu="Maps"}
 ========================================================
 ```{r, out.width = "1024px"}
-#Import the map for August
+# Import the map for August
 knitr::include_graphics("Aug2016.jpg")
 ```
 
 `r format(date, format='%B %Y')` {data-navmenu="Maps"}
 ========================================================
 ```{r, out.width = "1024px"}
-#Import the map created earlier for the current extraction date
+# Import the map created earlier for the current extraction date
 knitr::include_graphics(MapDate)
 ```
